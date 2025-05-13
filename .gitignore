@@ -1,0 +1,8 @@
+node_modules/
+package-lock.json
+nwt-raw.json
+nwt.txt
+frontend/dist/
+frontend/node_modules/
+.DS_Store
+*.log
