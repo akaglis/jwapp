@@ -13,28 +13,24 @@ function TooltipPortal({ children }) {
 const POPUP_VARIANTS = {
   hidden: { opacity: 0, scale: 0.9, y: -6 },
   visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
+    opacity: 1, scale: 1, y: 0,
     transition: { type: "spring", stiffness: 320, damping: 24 }
   },
   exit: { opacity: 0, scale: 0.9, y: -6, transition: { duration: 0.15 } }
 };
 
 const STRONGS = {
-  In: { original: "בְּרֵאשִׁית‎", number: "H7225", definition: "beginning" },
-  the: { original: "הַ", number: "H3588", definition: "definite article" },
+  In:        { original: "בְּרֵאשִׁית‎", number: "H7225", definition: "beginning" },
+  the:       { original: "הַ",       number: "H3588", definition: "definite article" },
   beginning: { original: "רֵאשִׁית‎", number: "H7225", definition: "beginning" },
-  God: { original: "אֱלֹהִים‎", number: "H430", definition: "God, gods" }
+  God:       { original: "אֱלֹהִים‎", number: "H430",  definition: "God, gods" }
 };
 const tokenCache = Object.create(null);
 
 export default function JWLibraryApp() {
-  /* ----- state ----- */
-  // We only have Genesis for now!
   const [book]    = useState({ name: "Genesis" });
   const [chapter, setChapter] = useState(null);
-  const [verses, setVerses]   = useState([]);
+  const [verses,  setVerses]  = useState([]);
 
   const [selectedVerse, setSelectedVerse] = useState(null);
   const [activeOption, setActiveOption]   = useState("");
@@ -44,19 +40,19 @@ export default function JWLibraryApp() {
   const [editingIndex, setEditingIndex] = useState(null);
 
   const [aiQuestion, setAiQuestion] = useState("");
-  const [aiAnswer, setAiAnswer]     = useState("");
-  const [aiLoading, setAiLoading]   = useState(false);
+  const [aiAnswer,   setAiAnswer]   = useState("");
+  const [aiLoading,  setAiLoading]  = useState(false);
 
   const [hoveredWord, setHoveredWord] = useState(null);
-  const [wordPos, setWordPos]         = useState({ x: 0, y: 0 });
+  const [wordPos,      setWordPos]     = useState({ x: 0, y: 0 });
 
   const popupRef     = useRef(null);
   const secondaryRef = useRef(null);
 
-  /* ----- fetch real verses ----- */
+  /* -- fetch real verses -- */
   useEffect(() => {
     if (!chapter) return;
-    fetch("http://localhost:4000/api/genesis")
+    fetch(`http://localhost:4000/api/genesis`)
       .then(r => r.json())
       .then(data => {
         const versesObj = data[chapter] || {};
@@ -68,7 +64,7 @@ export default function JWLibraryApp() {
       .catch(() => setVerses(["Error loading verses"]));
   }, [chapter]);
 
-  /* ----- click‑away to reset popups ----- */
+  /* -- click‑away to reset popups -- */
   useEffect(() => {
     const clickAway = e => {
       if (
@@ -80,7 +76,6 @@ export default function JWLibraryApp() {
     return () => document.removeEventListener("mousedown", clickAway);
   }, []);
 
-  /* ----- helpers ----- */
   const resetPopups = () => {
     setSelectedVerse(null);
     setActiveOption("");
@@ -98,9 +93,9 @@ export default function JWLibraryApp() {
     try {
       const resp = await fetch("http://localhost:4000/api/ai", {
         method: "POST",
-        headers: {"Content-Type":"application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: aiQuestion,
+          question:  aiQuestion,
           reference: `${book.name} ${chapter}:${selectedVerse}`
         })
       });
@@ -148,33 +143,43 @@ export default function JWLibraryApp() {
   };
   const handleDeleteNote = idx => {
     setNotes(prev => {
-      const arr = [...(prev[selectedVerse]||[])];
-      arr.splice(idx,1);
+      const arr = [...(prev[selectedVerse] || [])];
+      arr.splice(idx, 1);
       return { ...prev, [selectedVerse]: arr };
     });
     setEditingIndex(null);
   };
 
-  /* ----- render UI ----- */
   return (
     <div className="flex h-screen bg-gray-50 text-sm">
       {/* Sidebar */}
       <aside className="w-64 p-4 border-r bg-white overflow-y-auto space-y-4">
         <h2 className="text-lg font-bold">JW Library</h2>
-        {/* Only Genesis for now */}
+
+        {/* Genesis header / "Back to chapters" */}
         <button
-          className={`flex items-center w-full p-2 rounded ${chapter ? "" : "bg-indigo-100"}`}
+          className={`flex items-center w-full p-2 rounded ${
+            chapter == null ? "bg-indigo-100" : "hover:bg-gray-100"
+          }`}
+          onClick={() => { setChapter(null); resetPopups(); }}
         >
-          <BookOpen size={16} className="mr-2"/>Genesis
+          <BookOpen size={16} className="mr-2"/>
+          {chapter == null ? "Genesis" : "← Back to chapters"}
         </button>
+
+        {/* chapter grid only when chapter===null */}
         {chapter == null && (
           <div className="grid grid-cols-6 gap-1 mt-2">
             {Array.from({ length: 50 }, (_, i) => i+1).map(ch => (
               <button
                 key={ch}
-                className={`h-6 text-xs rounded ${chapter===ch?"bg-indigo-600 text-white":"hover:bg-gray-200"}`}
-                onClick={()=>{ setChapter(ch); resetPopups(); }}
-              >{ch}</button>
+                className={`h-6 text-xs rounded ${
+                  chapter===ch ? "bg-indigo-600 text-white" : "hover:bg-gray-200"
+                }`}
+                onClick={() => { setChapter(ch); resetPopups(); }}
+              >
+                {ch}
+              </button>
             ))}
           </div>
         )}
@@ -183,27 +188,26 @@ export default function JWLibraryApp() {
       {/* Reader */}
       <main className="flex-1 p-6 overflow-auto relative">
         {!chapter && <p>Select a chapter.</p>}
-        {chapter && verses.map((txt, idx) => {
-          const vnum = idx+1;
-          const noteCount = (notes[vnum]||[]).length;
+        {chapter != null && verses.map((txt, idx) => {
+          const vnum = idx + 1;
+          const noteCount = (notes[vnum] || []).length;
           return (
             <div key={vnum} className="relative mb-4">
               <div className="flex items-start">
                 <span
                   className="relative mr-2 font-semibold text-indigo-600 cursor-pointer select-none"
-                  onClick={()=>{ setSelectedVerse(p=>p===vnum?null:vnum); setActiveOption(""); setEditingIndex(null); }}
+                  onClick={() => { setSelectedVerse(p => p===vnum?null:vnum); setActiveOption(""); setEditingIndex(null); }}
                 >
                   {vnum}
-                  {noteCount>0 && <span className="absolute -top-1 -left-1 h-2 w-2 bg-emerald-500 rounded-full"/>}
+                  {noteCount > 0 && (
+                    <span className="absolute -top-1 -left-1 h-2 w-2 bg-emerald-500 rounded-full"/>
+                  )}
                 </span>
                 <div className="flex-1 leading-relaxed">
                   {chapter===1 && vnum===1 ? renderTokens(txt) : txt}
                 </div>
               </div>
-
-              {/* Popups… (AI Research / Notes) */}
-              {/* …your existing AnimatePresence/motion.div code here … */}
-
+              {/* …Put your existing popups (AI Research / Notes) AnimatePresence code here… */}
             </div>
           );
         })}
@@ -218,8 +222,12 @@ export default function JWLibraryApp() {
                 className="fixed bg-white border rounded shadow-lg p-3 text-xs z-50"
                 style={{ left: wordPos.x, top: wordPos.y + 8 }}
               >
-                <div className="font-bold mb-1 text-sm">{STRONGS[hoveredWord].original}</div>
-                <div className="mb-1">Strong's #{STRONGS[hoveredWord].number}</div>
+                <div className="font-bold mb-1 text-sm">
+                  {STRONGS[hoveredWord].original}
+                </div>
+                <div className="mb-1">
+                  Strong's #{STRONGS[hoveredWord].number}
+                </div>
                 <div>{STRONGS[hoveredWord].definition}</div>
               </motion.div>
             )}
