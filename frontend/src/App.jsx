@@ -52,7 +52,7 @@ export default function JWLibraryApp() {
   /* -- fetch real verses -- */
   useEffect(() => {
     if (!chapter) return;
-    fetch(`http://localhost:4000/api/genesis`)
+    fetch(`/api/genesis`)
       .then(r => r.json())
       .then(data => {
         const versesObj = data[chapter] || {};
@@ -91,7 +91,7 @@ export default function JWLibraryApp() {
     setAiLoading(true);
     setAiAnswer("");
     try {
-      const resp = await fetch("http://localhost:4000/api/ai", {
+      const resp = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
