@@ -207,7 +207,119 @@ export default function JWLibraryApp() {
                   {chapter===1 && vnum===1 ? renderTokens(txt) : txt}
                 </div>
               </div>
-              {/* …Put your existing popups (AI Research / Notes) AnimatePresence code here… */}
+              <AnimatePresence>
+                {selectedVerse === vnum && (
+                  <motion.div
+                    ref={popupRef}
+                    key="verse-popup"
+                    variants={POPUP_VARIANTS}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="absolute left-4 top-full mt-1 w-72 bg-white border rounded shadow-lg p-2 z-20 text-sm"
+                  >
+                    {activeOption === '' && (
+                      <div className="flex items-center justify-between space-x-2">
+                        <button
+                          className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-100"
+                          onClick={() => setActiveOption('notes')}
+                        >
+                          <Edit2 size={14} />
+                          <span>Notes</span>
+                        </button>
+                        <button
+                          className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-100"
+                          onClick={() => setActiveOption('ai')}
+                        >
+                          <Brain size={14} />
+                          <span>Research</span>
+                        </button>
+                        <button onClick={resetPopups} className="ml-auto text-xs text-gray-500 hover:text-gray-700">Close</button>
+                      </div>
+                    )}
+
+                    {activeOption === 'notes' && (
+                      <motion.div
+                        ref={secondaryRef}
+                        key="notes"
+                        variants={POPUP_VARIANTS}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="mt-1 space-y-2"
+                      >
+                        <div className="max-h-32 overflow-y-auto space-y-1">
+                          {(notes[selectedVerse] || []).map((note, i) => (
+                            <div key={i} className="flex items-start space-x-1">
+                              <span className="flex-1 break-words">{note}</span>
+                              <button
+                                onClick={() => { setEditingIndex(i); setNoteInput(note); }}
+                                className="p-0.5 hover:text-indigo-600"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteNote(i)}
+                                className="p-0.5 hover:text-red-600"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <input
+                          value={noteInput}
+                          onChange={e => setNoteInput(e.target.value)}
+                          placeholder="Add a note"
+                          className="w-full border px-1 py-0.5 rounded"
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <button onClick={resetPopups} className="text-xs text-gray-500 hover:text-gray-700">Close</button>
+                          <button
+                            onClick={handleSaveNote}
+                            className="px-2 py-0.5 bg-indigo-600 text-white rounded"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeOption === 'ai' && (
+                      <motion.div
+                        ref={secondaryRef}
+                        key="ai"
+                        variants={POPUP_VARIANTS}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="mt-1 space-y-2"
+                      >
+                        <input
+                          value={aiQuestion}
+                          onChange={e => setAiQuestion(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleAIResearch()}
+                          placeholder="Ask a question"
+                          className="w-full border px-1 py-0.5 rounded"
+                        />
+                        <button
+                          onClick={handleAIResearch}
+                          disabled={aiLoading}
+                          className="px-2 py-0.5 bg-indigo-600 text-white rounded disabled:opacity-50"
+                        >
+                          {aiLoading ? 'Loading...' : 'Ask'}
+                        </button>
+                        {aiAnswer && (
+                          <div className="border-t pt-1 text-xs whitespace-pre-wrap">{aiAnswer}</div>
+                        )}
+                        <div className="flex justify-end">
+                          <button onClick={resetPopups} className="text-xs text-gray-500 hover:text-gray-700">Close</button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })}
