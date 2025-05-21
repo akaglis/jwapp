@@ -1,5 +1,4 @@
-cat > extract-genesis.cjs << 'EOF'
-// extract-genesis.cjs
+// extract-nwt-structured.cjs
 
 const fs   = require('fs');
 const path = require('path');
@@ -35,5 +34,4 @@ const outPath = path.join(__dirname, 'nwt-source', 'genesis.json');
 fs.writeFileSync(outPath, JSON.stringify(bible, null, 2), 'utf8');
 
 console.log(`→ genesis.json written with ${Object.keys(bible.Genesis).length} chapters`);
-EOF
 
